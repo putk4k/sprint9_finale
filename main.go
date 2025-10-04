@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"slices"
 	"sync"
 	"time"
 )
@@ -32,15 +31,19 @@ func maximum(data []int) int {
 		log.Println("Пустой слайс")
 		return 0
 	}
+	max := data[0]
+	for i := range len(data) {
+		if data[i] > max {
+			max = data[i]
+		}
+	}
 
-	max := slices.Max(data)
 	return max
 }
 
 // maxChunks returns the maximum number of elements in a chunks.
 func maxChunks(data []int) int {
 	var wg sync.WaitGroup
-	var mu sync.Mutex
 
 	if len(data) == 0 {
 		log.Println("Пустой слайс")
@@ -52,7 +55,7 @@ func maxChunks(data []int) int {
 		chunks = len(data)
 	}
 
-	maxSlice := make([]int, 0, chunks)
+	maxSlice := make([]int, chunks)
 	lenChunck := len(data) / chunks
 
 	for i := 0; i < chunks; i++ {
@@ -66,20 +69,18 @@ func maxChunks(data []int) int {
 
 		slice := data[min:max]
 
-		go func(slice []int) {
+		go func(slice []int, i int) {
 			defer wg.Done()
 
-			max := slices.Max(slice)
+			max := maximum(slice)
 
-			mu.Lock()
-			maxSlice = append(maxSlice, max)
-			mu.Unlock()
+			maxSlice[i] = max
 
-		}(slice)
+		}(slice, i)
 	}
 	wg.Wait()
 
-	return slices.Max(maxSlice)
+	return maximum(maxSlice)
 }
 
 func main() {
